@@ -293,7 +293,7 @@ button{font:inherit; cursor:pointer}
   <!-- LOBBY -->
   <section id="lobby" class="app">
     <h1 class="title">Ballpark</h1>
-    <p class="tagline">Guess the prices at <b>Miso</b> and <b>Koji</b>'s night market. Seven new stalls every night, the same for everyone.</p>
+    <p class="tagline">Guess the prices at <b>Miso</b> and <b>Koji</b>'s night market.</p>
     <div class="tonight px">
       <div><small class="eyebrow">Tonight's market</small><strong id="themeName">…</strong></div>
       <div class="no" id="themeNo">#1</div>
@@ -1239,13 +1239,13 @@ function lobby(){
 // $5 once: replay every night that has already opened. Payment is a Stripe Payment Link that sends the
 // player back with ?session_id=cs_...; a Supabase function asks Stripe whether that session was paid.
 // The session id doubles as the unlock code, so it can be pasted on another device.
-const UNLIMITED = { payLink:"", price:"$5" };
+const UNLIMITED = { payLink:"", price:"$5", fn:"unlock" };
 const unlimitedCode = () => store().unlimited || null;
 async function verifyUnlock(code){
   await dbReady;
   if (!SCOREBOARD.url || !/^cs_(live|test)_[A-Za-z0-9]{10,200}$/.test(code)) return false;
   try {
-    const res = await fetch(SCOREBOARD.url.replace(/\/$/,"") + "/functions/v1/unlock", { method:"POST",
+    const res = await fetch(SCOREBOARD.url.replace(/\/$/,"") + "/functions/v1/" + (UNLIMITED.fn || "unlock"), { method:"POST",
       headers:{ apikey:SCOREBOARD.key, "Content-Type":"application/json" }, body:JSON.stringify({ code }) });
     return res.ok && (await res.json()).ok === true;
   } catch(e){ return false; }
