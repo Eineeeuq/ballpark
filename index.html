@@ -1666,7 +1666,7 @@ function finish(r){
 let DB = null, ME = null;
 // On the public website there is no claude.ai db; scores go to a Supabase table instead
 // (set by build_site.py; empty here). Players there are anonymous, one random id per browser.
-const SCOREBOARD = {"url": "", "key": "sb_publishable_2L444U0V7JVlslZ8CdPgfA_tUZqsJyJ"};
+const SCOREBOARD = {"url": "https://ghveavdhlaauabpjhvjo.supabase.co", "key": "sb_publishable_2L444U0V7JVlslZ8CdPgfA_tUZqsJyJ"};
 let WEB = null;
 const webId = () => { const st = store(); if (!st.pid){ st.pid = (crypto.randomUUID ? crypto.randomUUID() : "00000000-0000-4000-8000-" + String(Date.now()).slice(-12).padStart(12,"0")); save(st); } return st.pid; };
 const webFetch = (path, opt={}) => fetch(WEB.url.replace(/\/$/,"") + "/rest/v1/" + path, Object.assign({}, opt, {
