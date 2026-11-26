@@ -215,6 +215,12 @@ button{font:inherit; cursor:pointer}
 .st{aspect-ratio:1; display:grid; place-items:center; font-size:22px; background:var(--night-2); border:2px dashed var(--line); color:var(--line)}
 .st.got{background:#eef8ff; border:2px solid var(--sky); transform:rotate(-4deg)}
 .st.got:nth-child(even){transform:rotate(5deg)}
+.unl .nights{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px}
+.unl .nights button{background:var(--night-2); border:2px solid var(--line); color:var(--text); padding:6px 10px; font-size:14px; font-weight:700; text-align:left}
+.unl .nights button:hover{border-color:var(--gold)} .unl .nights b{color:var(--gold); margin-right:6px}
+.unl .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; font-size:13px; color:var(--muted)}
+.unl input{font:inherit; font-size:13px; padding:5px 8px; border:2px solid var(--line); background:var(--night-2); color:var(--text); min-width:0; flex:1 1 180px}
+.unl .linkbtn{background:transparent; border:0; color:var(--lilac); text-decoration:underline; font:inherit; font-size:13px; padding:0; cursor:pointer}
 .practice{display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:15px; color:var(--muted)}
 .practice button{background:transparent; border:2px solid var(--line); color:var(--text); padding:3px 12px; font-size:14px; font-weight:700}
 .practice button:hover{border-color:var(--lilac)}
@@ -252,6 +258,8 @@ button{font:inherit; cursor:pointer}
 .hist{display:flex; align-items:flex-end; gap:4px; height:90px; border-bottom:2px solid var(--line)}
 .hist i{flex:1; background:var(--plum-2); min-height:3px; position:relative}
 .hist i.you{background:var(--gold)}
+.hist i em{position:absolute; bottom:100%; left:50%; transform:translateX(-50%); margin-bottom:3px; font-style:normal; font-size:11px; font-weight:900; color:var(--gold); white-space:nowrap}
+.hist{margin-top:18px}
 .histlbl{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); font-weight:700}
 .stallcmp{display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none}
 .stallcmp li{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:10px; align-items:center; font-size:14px}
@@ -292,25 +300,7 @@ button{font:inherit; cursor:pointer}
       <div class="tmrw" id="tmrw"></div>
     </div>
     <div class="center"><button class="btn big" id="startBtn">Open the market</button></div>
-    <div class="rules">
-      <div class="rule px-dark"><canvas class="face" id="faceMiso" width="17" height="11"></canvas><div><h3>Price it</h3><p>One guess. The closer, the more coins. Within 1% wins a 🎟️.</p></div></div>
-      <div class="rule px-dark" id="ruleSpend"><canvas class="face" id="faceCust" width="17" height="11"></canvas><div><h3>Spend it</h3><p>Name anything that costs about Koji's budget.</p></div></div>
-      <div class="rule px-dark"><canvas class="face" id="faceKoji" width="17" height="11"></canvas><div><h3>Rip-off or steal?</h3><p>Is Koji's price too high or too low?</p></div></div>
-      <div class="rule px-dark"><canvas class="face" id="faceMiso2" width="17" height="11"></canvas><div><h3>Which costs more?</h3><p>Tap the pricier one.</p></div></div>
-    </div>
-    <div class="combo-line" style="margin:4px">🔥 <span>Get stalls right in a row to multiply your coins.</span></div>
-    <div class="passport px-dark" id="passportBox">
-      <header><h3>Koji's passport</h3><span class="cnt" id="stampCnt">0/0</span></header>
-      <p class="note" style="margin:0 0 10px">Spend on something from another country or decade to earn a stamp.</p>
-      <div class="stamps" id="stamps"></div>
-    </div>
-    <div class="board px-dark">
-      <header><h3>Prize ticket board</h3><span class="cnt" id="ticketCnt">0</span></header>
-      <p class="note" style="margin:0 0 10px">Guess within 1% to win one. Most players never do.</p>
-      <div class="tickets" id="tickets"></div>
-    </div>
-    <div class="practice" id="practice"></div>
-    <p class="foot">Prices checked against public sources, November 2026.</p>
+    <div class="board unl px-dark" id="unlBox" hidden></div>
   </section>
 
   <!-- GAME -->
@@ -1186,14 +1176,6 @@ function frame(ms){
 }
 requestAnimationFrame(frame);
 function fireworks(ms){ sc.fireUntil = performance.now() + ms; sc.nextFire = 0; }
-// portraits for the rules cards
-(() => {
-  const g = id => document.getElementById(id).getContext("2d");
-  drawCat("miso", 1, 0, 0, false, g("faceMiso"), true);
-  drawCat("koji", 1, 0, 0, true, g("faceKoji"), true);
-  drawCat("miso", 1, 0, 0, false, g("faceMiso2"), true);
-  drawCat("koji", 1, 0, 0, true, g("faceCust"), true);
-})();
 
 /* ================= dialog ================= */
 let typeIv = null, fullText = "";
@@ -1250,25 +1232,63 @@ function lobby(){
   const st = store(), done = st.played && st.played[TODAY_NO];
   $("#startBtn").textContent = done ? "See tonight's ledger" : "Open the market";
   $("#startBtn").onclick = () => done ? end(done, false, null, submitRun(done)) : start(todayPuzzle, TODAY_NO, false);
-  const owned = new Set(stampsOwned());
-  const got = [...owned].filter(x => typeof x === "string" && /^(🌍|⌛|🇦|🇧|🇨|🇩|🇪|🇫|🇬|🇭|🇮|🇯|🇰|🇱|🇲|🇳|🇴|🇵|🇶|🇷|🇸|🇹|🇺|🇻|🇼|🇽|🇾|🇿)/u.test(x));
-  $("#stampCnt").textContent = `${got.length} stamp${got.length===1 ? "" : "s"}`;
-  const slots = Math.max(12, Math.ceil((got.length + 1) / 6) * 6);
-  $("#stamps").innerHTML = Array.from({length:slots}, (_,k) => k < got.length
-    ? `<div class="st got" title="${esc(got[k])}">${esc(got[k].split(" ")[0])}</div>`
-    : `<div class="st" aria-label="Empty stamp slot">?</div>`).join("");
-  // Practice: replay the last week's markets only, so future nights stay a surprise.
-  if (!SPEND_IT){ $("#ruleSpend").style.display = "none"; $("#passportBox").style.display = "none"; }
-  const tix = st.tickets || [];
-  $("#ticketCnt").textContent = tix.length;
-  $("#tickets").innerHTML = tix.length
-    ? tix.slice().reverse().map(t => `<div class="tk" title="${esc(t.name)}"><b>#${esc(t.no)}</b><span>${esc(t.name)}</span><small>${fmt(t.price)}</small></div>`).join("")
-    : `<div class="tk empty">No tickets yet. Tonight could be the night.</div>`;
-  const others = [1,2,3,4,5,6,7].filter(k => N - k >= 0).map(k => puzzleFor(N - k)).filter((p,i,a) => p !== todayPuzzle && a.indexOf(p) === i);
-  $("#practice").hidden = !others.length;
-  $("#practice").innerHTML = "Practice markets (not scored): " + others.map(p => `<button data-i="${PUZZLES.indexOf(p)}">${esc(p.theme)}</button>`).join("");
-  $("#practice").querySelectorAll("button").forEach(b => b.onclick = () => start(PUZZLES[+b.dataset.i], null, true));
+  renderUnlimited();
 }
+
+/* ================= Ballpark Unlimited (website only) ================= */
+// $5 once: replay every night that has already opened. Payment is a Stripe Payment Link that sends the
+// player back with ?session_id=cs_...; a Supabase function asks Stripe whether that session was paid.
+// The session id doubles as the unlock code, so it can be pasted on another device.
+const UNLIMITED = { payLink:"", price:"$5" };
+const unlimitedCode = () => store().unlimited || null;
+async function verifyUnlock(code){
+  await dbReady;
+  if (!SCOREBOARD.url || !/^cs_(live|test)_[A-Za-z0-9]{10,200}$/.test(code)) return false;
+  try {
+    const res = await fetch(SCOREBOARD.url.replace(/\/$/,"") + "/functions/v1/unlock", { method:"POST",
+      headers:{ apikey:SCOREBOARD.key, "Content-Type":"application/json" }, body:JSON.stringify({ code }) });
+    return res.ok && (await res.json()).ok === true;
+  } catch(e){ return false; }
+}
+async function claimUnlock(code, msgEl){
+  if (msgEl) msgEl.textContent = "Checking…";
+  const ok = await verifyUnlock(code.trim());
+  if (ok){ const st = store(); st.unlimited = code.trim(); save(st); if (!$("#lobby").hidden) lobby(); }
+  else if (msgEl) msgEl.textContent = "That code didn't work. Check it and try again.";
+  return ok;
+}
+function renderUnlimited(){
+  const box = $("#unlBox");
+  if (!UNLIMITED.payLink || !SCOREBOARD.url){ box.hidden = true; return; }
+  box.hidden = false;
+  const code = unlimitedCode();
+  const past = []; for (let n = TODAY_NO - 1; n >= 1; n--) past.push(n);
+  if (code){
+    const played = store().played || {};
+    box.innerHTML = `<header><h3>Ballpark Unlimited</h3><span class="cnt">✓</span></header>
+      <p class="note" style="margin:0 0 10px">Replay any past night. These don't count on the shared board.</p>
+      <div class="nights">${past.length ? past.map(n => `<button data-n="${n}"><b>#${n}</b>${esc(puzzleFor(n-1).theme)}${played[n] ? " ✓" : ""}</button>`).join("") : `<div class="tk empty">Past nights show up here once they close.</div>`}</div>
+      <div class="row">Your unlock code (use it on another device): <button class="linkbtn" id="unlCopy">Copy code</button></div>`;
+    box.querySelectorAll("button[data-n]").forEach(b => b.onclick = () => start(puzzleFor(+b.dataset.n - 1), null, true));
+    $("#unlCopy").onclick = async () => { try { await navigator.clipboard.writeText(code); $("#unlCopy").textContent = "Copied!"; } catch(e){ $("#unlCopy").textContent = code; } };
+  } else {
+    box.innerHTML = `<header><h3>Ballpark Unlimited</h3><span class="cnt">${UNLIMITED.price}</span></header>
+      <p class="note" style="margin:0 0 10px">Pay once to replay every past night${past.length ? ` (${past.length} so far)` : ""}, plus each one after it closes.</p>
+      <div class="center"><a class="btn" id="unlBuy" href="${esc(UNLIMITED.payLink)}">Unlock for ${UNLIMITED.price}</a></div>
+      <div class="row"><button class="linkbtn" id="unlHave">Already paid? Enter your code</button></div>
+      <div class="row" id="unlForm" hidden><input id="unlCode" placeholder="cs_live_…" aria-label="Unlock code" autocomplete="off"><button class="btn" id="unlGo">Restore</button><span id="unlMsg" role="status"></span></div>`;
+    $("#unlHave").onclick = () => { $("#unlForm").hidden = false; $("#unlCode").focus(); };
+    $("#unlGo").onclick = () => claimUnlock($("#unlCode").value, $("#unlMsg"));
+  }
+}
+// Coming back from Stripe checkout
+(async () => {
+  let sid = null; try { sid = new URLSearchParams(location.search).get("session_id"); } catch(e){}
+  if (!sid || !UNLIMITED.payLink) return;
+  try { history.replaceState(null, "", location.pathname); } catch(e){}
+  const ok = await claimUnlock(sid, null);
+  alert(ok ? "Ballpark Unlimited is unlocked. Thanks for supporting the market!" : "We couldn't confirm your payment yet. If you were charged, open Ballpark Unlimited, choose \"Already paid?\" and paste this code:\n\n" + sid);
+})();
 
 /* ================= game ================= */
 function start(puzzle, no, practice){
@@ -1644,18 +1664,31 @@ function finish(r){
 // One document per player: players/<their id> = { nights:[...], runs:{ "<night no>": {total, pts[], e, combo, at} } }.
 // Everyone reads; each player writes only their own document.
 let DB = null, ME = null;
+// On the public website there is no claude.ai db; scores go to a Supabase table instead
+// (set by build_site.py; empty here). Players there are anonymous, one random id per browser.
+const SCOREBOARD = {"url": "", "key": "sb_publishable_2L444U0V7JVlslZ8CdPgfA_tUZqsJyJ"};
+let WEB = null;
+const webId = () => { const st = store(); if (!st.pid){ st.pid = (crypto.randomUUID ? crypto.randomUUID() : "00000000-0000-4000-8000-" + String(Date.now()).slice(-12).padStart(12,"0")); save(st); } return st.pid; };
+const webFetch = (path, opt={}) => fetch(WEB.url.replace(/\/$/,"") + "/rest/v1/" + path, Object.assign({}, opt, {
+  headers: Object.assign({ apikey:WEB.key, "Content-Type":"application/json" }, /^eyJ/.test(WEB.key) ? { Authorization:"Bearer " + WEB.key } : {}, opt.headers || {}) }));
 const dbReady = (async () => {
   try {
-    if (!window.claude || !window.claude.use) return;
-    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
-    if (!db || !user) return;
-    const id = await user.id();
-    if (id){ DB = db; ME = id; }
+    if (window.claude && window.claude.use){
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (db && user){ const id = await user.id(); if (id){ DB = db; ME = id; return; } }
+    }
   } catch(e){}
+  if (SCOREBOARD.url && SCOREBOARD.key){ WEB = SCOREBOARD; ME = webId(); }
 })();
 async function submitRun(rec){
   await dbReady;
-  if (!DB || !rec || rec.practice || !rec.no) return;
+  if (!rec || rec.practice || !rec.no) return;
+  if (WEB){
+    try { await webFetch("runs", { method:"POST", headers:{ Prefer:"return=minimal" },
+      body: JSON.stringify({ night:rec.no, player:ME, total:Math.round(rec.total), pts:rec.rows.map(r => Math.round(r.pts)), e:rec.rows.map(r => r.e).join(""), combo:rec.bestCombo || 0 }) }); } catch(e){}
+    return; // a second play of the same night is refused by the table (one row per player per night)
+  }
+  if (!DB) return;
   try {
     const ref = DB.doc("players/" + ME);
     const snap = await ref.get();
@@ -1673,14 +1706,21 @@ async function renderCompare(rec, pending){
   if (rec.practice || !rec.no){ box.remove(); return; }
   note("Counting tonight's other shoppers…");
   await dbReady;
-  if (!DB){ box.remove(); return; }
+  if (!DB && !WEB){ box.remove(); return; }
   await pending;
   let done = false;
   const timer = setTimeout(() => { if (!done) note("Other players' scores can't be reached right now. Check back in a moment."); }, 10000);
   try {
-    const snap = await DB.collection("players").where("nights", "array-contains", rec.no).limit(1000).get();
+    let runs;
+    if (WEB){
+      const res = await webFetch("runs?select=player,total,pts&night=eq." + Number(rec.no) + "&limit=10000");
+      if (!res.ok) throw new Error(res.status);
+      runs = (await res.json()).map(r => ({ id:r.player, total:num(r.total), pts:Array.isArray(r.pts) ? r.pts.map(num) : [] }));
+    } else {
+      const snap = await DB.collection("players").where("nights", "array-contains", rec.no).limit(1000).get();
+      runs = snap.docs.map(d => { const r = ((d.data() || {}).runs || {})[rec.no]; return r ? { id:d.id, total:num(r.total), pts:Array.isArray(r.pts) ? r.pts.map(num) : [] } : null; }).filter(Boolean);
+    }
     done = true; clearTimeout(timer);
-    const runs = snap.docs.map(d => { const r = ((d.data() || {}).runs || {})[rec.no]; return r ? { id:d.id, total:num(r.total), pts:Array.isArray(r.pts) ? r.pts.map(num) : [] } : null; }).filter(Boolean);
     if (!runs.some(x => x.id === ME)) runs.push({ id:ME, total:rec.total, pts:rec.rows.map(r => r.pts) });
     if (box.isConnected) box.innerHTML = compareHTML(rec, runs);
   } catch(e){ done = true; clearTimeout(timer); note("Couldn't load other players' scores right now."); }
@@ -1698,7 +1738,7 @@ function compareHTML(rec, runs){
   const hi = Math.max(top, rec.total, 1), bands = 8, w = hi / bands;
   const counts = Array(bands).fill(0); runs.forEach(x => counts[Math.min(bands-1, Math.floor(x.total / w))]++);
   const myBand = Math.min(bands-1, Math.floor(rec.total / w)), peak = Math.max(...counts);
-  const hist = counts.map((c,i) => `<i class="${i===myBand ? "you" : ""}" style="height:${Math.max(4, c/peak*100)}%" title="${Math.round(i*w)}–${Math.round((i+1)*w)} coins: ${c} player${c===1?"":"s"}"></i>`).join("");
+  const hist = counts.map((c,i) => `<i class="${i===myBand ? "you" : ""}" style="height:${Math.max(4, c/peak*100)}%" title="${Math.round(i*w)}–${Math.round((i+1)*w)} coins: ${c} player${c===1?"":"s"}">${i===myBand ? "<em>You ▾</em>" : ""}</i>`).join("");
   // per stall: you vs average
   const stallAvg = rec.rows.map((_,i) => runs.reduce((a,x) => a + (x.pts[i] || 0), 0) / runs.length);
   const scale = Math.max(1, ...stallAvg, ...rec.rows.map(r => r.pts));
