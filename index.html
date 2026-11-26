@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Ballpark</title>
+<title>Haggle Hour</title>
 <meta name="description" content="A daily price-guessing game at a pixel night market. Seven stalls a night, run by two cats.">
-<meta property="og:title" content="Ballpark">
+<meta property="og:title" content="Haggle Hour">
 <meta property="og:description" content="Guess the price. Seven stalls a night at Miso and Koji's market.">
 <meta name="theme-color" content="#1b1633">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏮</text></svg>">
@@ -275,7 +275,7 @@ button{font:inherit; cursor:pointer}
 
 <div class="app">
   <header class="hud">
-    <div class="logo">Ballpark<small id="hudNo">#1</small></div>
+    <div class="logo">Haggle Hour<small id="hudNo">#1</small></div>
     <div class="hud-r">
       <div class="combo" id="combo" hidden aria-live="polite"></div>
       <div class="coins" aria-label="Coins"><span class="coin" aria-hidden="true"></span><span id="coins">0</span></div>
@@ -292,7 +292,7 @@ button{font:inherit; cursor:pointer}
 
   <!-- LOBBY -->
   <section id="lobby" class="app">
-    <h1 class="title">Ballpark</h1>
+    <h1 class="title">Haggle Hour</h1>
     <p class="tagline">Guess the prices at <b>Miso</b> and <b>Koji</b>'s night market.</p>
     <div class="tonight px">
       <div><small class="eyebrow">Tonight's market</small><strong id="themeName">…</strong></div>
@@ -1235,7 +1235,7 @@ function lobby(){
   renderUnlimited();
 }
 
-/* ================= Ballpark Unlimited (website only) ================= */
+/* ================= Haggle Hour Unlimited (website only) ================= */
 // $5 once: replay every night that has already opened. Payment is a Stripe Payment Link that sends the
 // player back with ?session_id=cs_...; a Supabase function asks Stripe whether that session was paid.
 // The session id doubles as the unlock code, so it can be pasted on another device.
@@ -1265,14 +1265,14 @@ function renderUnlimited(){
   const past = []; for (let n = TODAY_NO - 1; n >= 1; n--) past.push(n);
   if (code){
     const played = store().played || {};
-    box.innerHTML = `<header><h3>Ballpark Unlimited</h3><span class="cnt">✓</span></header>
+    box.innerHTML = `<header><h3>Haggle Hour Unlimited</h3><span class="cnt">✓</span></header>
       <p class="note" style="margin:0 0 10px">Replay any past night. These don't count on the shared board.</p>
       <div class="nights">${past.length ? past.map(n => `<button data-n="${n}"><b>#${n}</b>${esc(puzzleFor(n-1).theme)}${played[n] ? " ✓" : ""}</button>`).join("") : `<div class="tk empty">Past nights show up here once they close.</div>`}</div>
       <div class="row">Your unlock code (use it on another device): <button class="linkbtn" id="unlCopy">Copy code</button></div>`;
     box.querySelectorAll("button[data-n]").forEach(b => b.onclick = () => start(puzzleFor(+b.dataset.n - 1), null, true));
     $("#unlCopy").onclick = async () => { try { await navigator.clipboard.writeText(code); $("#unlCopy").textContent = "Copied!"; } catch(e){ $("#unlCopy").textContent = code; } };
   } else {
-    box.innerHTML = `<header><h3>Ballpark Unlimited</h3><span class="cnt">${UNLIMITED.price}</span></header>
+    box.innerHTML = `<header><h3>Haggle Hour Unlimited</h3><span class="cnt">${UNLIMITED.price}</span></header>
       <p class="note" style="margin:0 0 10px">Pay once to replay every past night${past.length ? ` (${past.length} so far)` : ""}, plus each one after it closes.</p>
       <div class="center"><a class="btn" id="unlBuy" href="${esc(UNLIMITED.payLink)}">Unlock for ${UNLIMITED.price}</a></div>
       <div class="row"><button class="linkbtn" id="unlHave">Already paid? Enter your code</button></div>
@@ -1287,7 +1287,7 @@ function renderUnlimited(){
   if (!sid || !UNLIMITED.payLink) return;
   try { history.replaceState(null, "", location.pathname); } catch(e){}
   const ok = await claimUnlock(sid, null);
-  alert(ok ? "Ballpark Unlimited is unlocked. Thanks for supporting the market!" : "We couldn't confirm your payment yet. If you were charged, open Ballpark Unlimited, choose \"Already paid?\" and paste this code:\n\n" + sid);
+  alert(ok ? "Haggle Hour Unlimited is unlocked. Thanks for supporting the market!" : "We couldn't confirm your payment yet. If you were charged, open Haggle Hour Unlimited, choose \"Already paid?\" and paste this code:\n\n" + sid);
 })();
 
 /* ================= game ================= */
@@ -1797,7 +1797,7 @@ function shareText(rec){
   const nT = rec.rows.filter(r => r.ticket || r.e === "🎟️").length;
   const tk = nT ? `\n🎟️ ${nT > 1 ? nT + " prize tickets" : "Won a prize ticket"} (within 1%)` : "";
   const rk = rankFor(rec.total);
-  return `Ballpark ${rec.no ? "#"+rec.no : "(practice)"} 🏮 ${rec.theme}\n${rec.rows.map(r => r.e).join("")}${extras ? " " + extras : ""}\n🪙 ${rec.total} coins · ${rk.emoji} ${rk.name}${combo}${tk}`;
+  return `Haggle Hour ${rec.no ? "#"+rec.no : "(practice)"} 🏮 ${rec.theme}\n${rec.rows.map(r => r.e).join("")}${extras ? " " + extras : ""}\n🪙 ${rec.total} coins · ${rk.emoji} ${rk.name}${combo}${tk}`;
 }
 function end(rec, fresh, stats, pending){
   stats = stats || store();
